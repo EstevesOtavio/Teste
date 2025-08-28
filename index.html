@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Envio Inseguro</title>
+</head>
+<body>
+
+    <h1>Tentando Enviar a Localização...</h1>
+    <p>O resultado será exibido no console do navegador.</p>
+    
+    <script>
+        // ESTE É O RISCO: A CHAVE DE API ESTÁ VISÍVEL NO CÓDIGO FONTE.
+        // NUNCA FAÇA ISSO.
+        const PASTEBIN_API_KEY = "KhcA_mQ4WEXFcuAZ"; 
+
+        const options = {
+            enableHighAccuracy: true,
+            timeout: 5000,
+            maximumAge: 0
+        };
+
+        function success(position) {
+            const latitude = position.coords.latitude;
+            const longitude = position.coords.longitude;
+            const accuracy = position.coords.accuracy;
+
+            const pasteTitle = "Localização obtida";
+            const pasteContent = `
+                Localização obtida em: ${new Date().toISOString()}
+                Latitude: ${latitude}
+                Longitude: ${longitude}
+                Precisão: ${accuracy} metros
+            `;
+
+            // Adicionando os parâmetros solicitados
+            const formData = new FormData();
+            formData.append('api_dev_key', PASTEBIN_API_KEY);
+            formData.append('api_option', 'paste');
+            formData.append('api_paste_code', pasteContent);
+            formData.append('api_paste_name', 'Localizacao 111'); // Nome do paste
+            formData.append('api_paste_format', 'text');          // Formato: texto puro
+            formData.append('api_paste_private', '1');            // 1 = Não-listado
+            formData.append('api_paste_expire_date', '1D');        // Expira em 1 dia
+            
+            fetch('https://pastebin.com/api/api_post.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(result => {
+                if (result.startsWith("https://")) {
+                    console.log("Sucesso! Localização salva no Pastebin:");
+                    console.log(result);
+                } else {
+                    console.error("Erro ao enviar:", result);
+                }
+            })
+            .catch(error => console.error("Erro na requisição:", error));
+        }
+
+        function error(err) {
+            console.error(`ERRO ${err.code}: ${err.message}`);
+        }
+
+        if ('geolocation' in navigator) {
+            navigator.geolocation.getCurrentPosition(success, error, options);
+        } else {
+            console.error('Geolocalização não é suportada por este navegador.');
+        }
+    </script>
+</body>
+</html>
